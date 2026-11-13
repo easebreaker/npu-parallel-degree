@@ -13,7 +13,7 @@
 
 ```bash
 python3 derive_b.py                      # 从 13 点实测反解 b
-python3 -m unittest discover -s tests    # 16 项判定逻辑测试
+python3 -m unittest discover -s tests    # 35 项
 ```
 
 ---
@@ -168,6 +168,16 @@ T(N) = b(N) + C·N^(-ρ)
 
 完整流程见 [`方案-并行度内点.md`](方案-并行度内点.md)。
 
+**但还有三个比 `b(N)` 更早生效的约束**（不依赖拟合，纯结构）：
+
+| 约束 | 生效区段 | 判据 |
+|---|---|---|
+| 核数 | L ≲ 2048 | `ceil(L/(N·BM))²/2 ≥ AIC` |
+| 流水深度 | 小 L + 大 N | 任务数 ≥ `num_stages` |
+| MTE2 下界 | 大 L 的天花板 | 上界 = `L/L*` |
+
+推导与对 CP 设计的六条指导见 [`CV流水-对CP设计的约束.md`](CV流水-对CP设计的约束.md)。
+
 ---
 
 ## 六、三条证伪条件
@@ -207,10 +217,12 @@ T(N) = b(N) + C·N^(-ρ)
 
 ```
 marginal.py              判定逻辑（形状拟合、斜率、内点求解、饱和判据）
+cvflow.py                CV 流水约束（核数、流水深度、tile 缩放代价）
 derive_b.py              从 13 点实测反解 b 并给出标准误
 data/attn_mtgr_cp13.csv  13 个长度点 × 三档并行度
 方案-并行度内点.md        完整方案：测量集、重复次数、判定树、证伪条件
-tests/test_marginal.py   16 项，含「形状标签在噪声下会判错但斜率仍准」
+CV流水-对CP设计的约束.md  核数/流水/MTE2 三个结构性上限，六条设计指导
+tests/                   35 项
 ```
 
 `marginal.py` 的接口：
